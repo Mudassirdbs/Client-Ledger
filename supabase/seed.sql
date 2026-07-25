@@ -74,4 +74,5 @@ VALUES
     CURRENT_DATE - INTERVAL '25 days',
     CURRENT_DATE - INTERVAL '11 days',
     '[{"description": "Initial Deposit & Architecture Planning", "quantity": 1, "unitPrice": 9000, "total": 9000}]'::jsonb
-  );
+  )
+ON CONFLICT (invoice_number) DO NOTHING;
