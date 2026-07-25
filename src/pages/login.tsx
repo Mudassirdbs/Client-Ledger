@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, AlertTriangle } from "lucide-react";
 
 export default function Login() {
   const [, navigate] = useLocation();
@@ -40,6 +40,15 @@ export default function Login() {
         <div className="bg-card border border-card-border rounded-2xl p-8 shadow-sm">
           <h1 className="text-2xl font-black tracking-tight mb-1">Welcome back</h1>
           <p className="text-sm text-muted-foreground mb-6">Sign in to your account</p>
+
+          {!isSupabaseConfigured && (
+            <div className="mb-6 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-2.5 text-amber-600 dark:text-amber-400 text-xs">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+              <div>
+                <strong>Supabase Config Missing:</strong> Please set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in your environment variables (e.g. Vercel dashboard).
+              </div>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="space-y-1.5">
