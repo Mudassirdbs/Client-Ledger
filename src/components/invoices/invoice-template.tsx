@@ -23,13 +23,13 @@ export const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <h1 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 6px", letterSpacing: "-0.01em", lineHeight: 1 }}>
-              Mudassir Asghar
+              Your Agency Name
             </h1>
             <p style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.12em", color: "#DC8C3A", textTransform: "uppercase", margin: "0 0 6px" }}>
-              Web Developer • WordPress Expert • SEO Specialist
+              Web Development • Software Engineering • UI/UX Design
             </p>
             <p style={{ fontSize: 12.5, color: "#6B6E76", margin: 0 }}>
-              Bahawalpur, Pakistan&nbsp;&nbsp;|&nbsp;&nbsp;(+92) 336-787-6763
+              San Francisco, CA&nbsp;&nbsp;|&nbsp;&nbsp;(+1) 555-0199
             </p>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -85,9 +85,9 @@ export const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
           </div>
           <div style={{ textAlign: "right" }}>
             <p style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9A9DA5", margin: "0 0 10px" }}>From</p>
-            <p style={{ fontSize: 16, fontWeight: 700, margin: "0 0 3px" }}>Mudassir Asghar</p>
+            <p style={{ fontSize: 16, fontWeight: 700, margin: "0 0 3px" }}>Your Agency Name</p>
             <p style={{ fontSize: 12.5, fontWeight: 600, color: "#DC8C3A", margin: "0 0 2px", fontStyle: "italic" }}>Web Development Services</p>
-            <p style={{ fontSize: 12.5, color: "#6B6E76", margin: 0 }}>Bahawalpur, Pakistan</p>
+            <p style={{ fontSize: 12.5, color: "#6B6E76", margin: 0 }}>San Francisco, CA</p>
           </div>
         </div>
 
@@ -191,12 +191,12 @@ export const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
               <p style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "#DC8C3A", margin: "0 0 14px" }}>💳 Payment Information</p>
               <div>
                 <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9A9DA5", margin: "0 0 4px" }}>Account Holder</p>
-                <p style={{ fontSize: 12.5, fontWeight: 700, margin: "0 0 12px" }}>Muhammad Mudassir Asghar</p>
+                <p style={{ fontSize: 12.5, fontWeight: 700, margin: "0 0 12px" }}>Your Business / Personal Name</p>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <div>
                   <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9A9DA5", margin: "0 0 4px" }}>Bank</p>
-                  <p style={{ fontSize: 12.5, fontWeight: 700, margin: 0 }}>Meezan Bank</p>
+                  <p style={{ fontSize: 12.5, fontWeight: 700, margin: 0 }}>Your Bank Name</p>
                 </div>
                 <div>
                   <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9A9DA5", margin: "0 0 4px" }}>Method</p>
@@ -204,8 +204,8 @@ export const InvoiceTemplate = forwardRef<HTMLDivElement, InvoiceTemplateProps>(
                 </div>
               </div>
               <div style={{ marginTop: 12 }}>
-                <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9A9DA5", margin: "0 0 4px" }}>Account Number</p>
-                <p style={{ fontSize: 12.5, fontWeight: 700, margin: 0 }}>00300110341829</p>
+                <p style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#9A9DA5", margin: "0 0 4px" }}>Account Number / IBAN</p>
+                <p style={{ fontSize: 12.5, fontWeight: 700, margin: 0 }}>0000 0000 0000 0000</p>
               </div>
             </div>
 
