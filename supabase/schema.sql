@@ -15,17 +15,21 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Automatic Profile Creation Trigger on Signup
+-- Automatic Profile Creation Trigger on Signup (First user becomes Admin automatically)
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  user_count INT;
 BEGIN
+  SELECT COUNT(*) INTO user_count FROM public.profiles;
+
   INSERT INTO public.profiles (id, email, full_name, role, status)
   VALUES (
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
-    'client',
-    'pending'
+    CASE WHEN user_count = 0 THEN 'admin' ELSE 'client' END,
+    CASE WHEN user_count = 0 THEN 'approved' ELSE 'pending' END
   );
   RETURN NEW;
 END;
