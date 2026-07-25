@@ -57,10 +57,11 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 
 ---
 
-### Step 4: Setup Database Schema
+### Step 4: Setup Database Schema & Sample Data
 1. Open your project in the [Supabase Dashboard](https://supabase.com/dashboard).
 2. Go to the **SQL Editor**.
 3. Paste the contents of [`supabase/schema.sql`](supabase/schema.sql) and click **Run**.
+4. *(Optional)* Paste the contents of [`supabase/seed.sql`](supabase/seed.sql) and click **Run** to populate sample projects, servers, tools, and invoices.
 
 ---
 
