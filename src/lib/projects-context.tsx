@@ -32,14 +32,24 @@ function dbToProject(row: Record<string, unknown>): Project {
   };
 }
 
+import { DEMO_PROJECTS } from "@/lib/demo-data";
+
 export function ProjectsProvider({ children }: { children: ReactNode }) {
-  const { profile, isAdmin, isApprovedClient } = useAuth();
+  const { user, profile, isAdmin, isApprovedClient } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   // Debounce realtime refetches to avoid hammering Supabase
   const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const isDemo = import.meta.env.VITE_ENABLE_DEMO_MODE === "true" || user?.id === "demo-admin-id";
+
   const fetchProjects = useCallback(async () => {
+    if (isDemo) {
+      setProjects(DEMO_PROJECTS);
+      setLoading(false);
+      return;
+    }
+
     if (!profile) { setProjects([]); setLoading(false); return; }
 
     setLoading(true);
@@ -58,18 +68,21 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       setProjects(data.map(dbToProject));
     }
     setLoading(false);
-  }, [profile, isAdmin, isApprovedClient]);
+  }, [profile, isAdmin, isApprovedClient, isDemo]);
 
   // Debounced version for realtime — coalesces rapid changes into one fetch
   const debouncedFetch = useCallback(() => {
+    if (isDemo) return;
     if (refetchTimer.current) clearTimeout(refetchTimer.current);
     refetchTimer.current = setTimeout(() => {
       fetchProjects();
     }, 300);
-  }, [fetchProjects]);
+  }, [fetchProjects, isDemo]);
 
   useEffect(() => {
     fetchProjects();
+
+    if (isDemo) return;
 
     // Real-time subscription — uses debounced handler
     const channel = supabase
@@ -81,10 +94,14 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
       if (refetchTimer.current) clearTimeout(refetchTimer.current);
       supabase.removeChannel(channel);
     };
-  }, [fetchProjects, debouncedFetch]);
+  }, [fetchProjects, debouncedFetch, isDemo]);
 
   const addProject = async (p: Omit<Project, "id">) => {
-    // Optimistic: skip manual re-fetch, realtime will push update
+    if (isDemo) {
+      const newP: Project = { id: `demo-${Date.now()}`, ...p };
+      setProjects((prev) => [newP, ...prev]);
+      return;
+    }
     await supabase.from("projects").insert({
       client_name: p.clientName,
       project_name: p.projectName,
@@ -95,10 +112,10 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProject = async (id: string, updates: Omit<Project, "id">) => {
-    // Optimistic local update — instant UI feedback
     setProjects((prev) =>
       prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
     );
+    if (isDemo) return;
     await supabase.from("projects").update({
       client_name: updates.clientName,
       project_name: updates.projectName,
@@ -110,8 +127,8 @@ export function ProjectsProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteProject = async (id: string) => {
-    // Optimistic local delete — instant UI removal
     setProjects((prev) => prev.filter((p) => p.id !== id));
+    if (isDemo) return;
     await supabase.from("projects").delete().eq("id", id);
   };
 

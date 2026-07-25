@@ -32,12 +32,22 @@ function dbToInvoice(row: Record<string, any>): Invoice {
   };
 }
 
+import { DEMO_INVOICES } from "@/lib/demo-data";
+
 export function InvoicesProvider({ children }: { children: ReactNode }) {
-  const { profile, isAdmin } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const isDemo = import.meta.env.VITE_ENABLE_DEMO_MODE === "true" || user?.id === "demo-admin-id";
+
   const fetchInvoices = useCallback(async () => {
+    if (isDemo) {
+      setInvoices(DEMO_INVOICES);
+      setLoading(false);
+      return;
+    }
+
     if (!profile) {
       setInvoices([]);
       setLoading(false);
@@ -132,6 +142,11 @@ export function InvoicesProvider({ children }: { children: ReactNode }) {
   }, [fetchInvoices]);
 
   const addInvoice = async (invoice: Omit<Invoice, "id">) => {
+    if (isDemo) {
+      const newInv: Invoice = { id: `demo-inv-${Date.now()}`, ...invoice };
+      setInvoices((prev) => [newInv, ...prev]);
+      return;
+    }
     if (!isAdmin) return;
     const { error } = await supabase.from("invoices").insert({
       invoice_number: invoice.invoiceNumber,
@@ -157,7 +172,10 @@ export function InvoicesProvider({ children }: { children: ReactNode }) {
   };
 
   const updateInvoice = async (id: string, updates: Omit<Invoice, "id">) => {
-    if (!isAdmin) return;
+    setInvoices((prev) =>
+      prev.map((inv) => (inv.id === id ? { ...inv, ...updates } : inv))
+    );
+    if (isDemo || !isAdmin) return;
     const { error } = await supabase
       .from("invoices")
       .update({
@@ -184,10 +202,8 @@ export function InvoicesProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteInvoice = async (id: string) => {
-    if (!isAdmin) return;
-    
-    // Optimistic local delete
     setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+    if (isDemo || !isAdmin) return;
     
     // Perform delete and return the deleted rows to verify success
     const { data, error } = await supabase.from("invoices").delete().eq("id", id).select();

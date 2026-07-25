@@ -33,13 +33,23 @@ function dbToVpsServer(row: Record<string, unknown>): VpsServer {
   };
 }
 
+import { DEMO_VPS_SERVERS } from "@/lib/demo-data";
+
 export function VpsProvider({ children }: { children: ReactNode }) {
-  const { profile, isAdmin } = useAuth();
+  const { user, profile, isAdmin } = useAuth();
   const [vpsServers, setVpsServers] = useState<VpsServer[]>([]);
   const [loading, setLoading] = useState(true);
   const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const isDemo = import.meta.env.VITE_ENABLE_DEMO_MODE === "true" || user?.id === "demo-admin-id";
+
   const fetchVpsServers = useCallback(async () => {
+    if (isDemo) {
+      setVpsServers(DEMO_VPS_SERVERS);
+      setLoading(false);
+      return;
+    }
+
     // Strictly restrict to admins
     if (!profile || !isAdmin) { setVpsServers([]); setLoading(false); return; }
 
@@ -55,17 +65,20 @@ export function VpsProvider({ children }: { children: ReactNode }) {
       setVpsServers(data.map(dbToVpsServer));
     }
     setLoading(false);
-  }, [profile, isAdmin]);
+  }, [profile, isAdmin, isDemo]);
 
   const debouncedFetch = useCallback(() => {
+    if (isDemo) return;
     if (refetchTimer.current) clearTimeout(refetchTimer.current);
     refetchTimer.current = setTimeout(() => {
       fetchVpsServers();
     }, 300);
-  }, [fetchVpsServers]);
+  }, [fetchVpsServers, isDemo]);
 
   useEffect(() => {
     fetchVpsServers();
+
+    if (isDemo) return;
 
     // Real-time subscription
     const channel = supabase
@@ -77,9 +90,14 @@ export function VpsProvider({ children }: { children: ReactNode }) {
       if (refetchTimer.current) clearTimeout(refetchTimer.current);
       supabase.removeChannel(channel);
     };
-  }, [fetchVpsServers, debouncedFetch]);
+  }, [fetchVpsServers, debouncedFetch, isDemo]);
 
   const addVpsServer = async (vps: Omit<VpsServer, "id">) => {
+    if (isDemo) {
+      const newVps: VpsServer = { id: `demo-vps-${Date.now()}`, ...vps };
+      setVpsServers((prev) => [newVps, ...prev]);
+      return;
+    }
     if (!isAdmin) return;
     const { error } = await supabase.from("vps_servers").insert({
       company: vps.company,
@@ -92,15 +110,13 @@ export function VpsProvider({ children }: { children: ReactNode }) {
     if (error) {
       console.error("[VPS] Failed to add server:", error);
     }
-    // Realtime will push update — no manual refetch needed
   };
 
   const updateVpsServer = async (id: string, updates: Omit<VpsServer, "id">) => {
-    if (!isAdmin) return;
-    // Optimistic local update
     setVpsServers((prev) =>
       prev.map((s) => (s.id === id ? { ...s, ...updates } : s))
     );
+    if (isDemo || !isAdmin) return;
     const { error } = await supabase.from("vps_servers").update({
       company: updates.company,
       ip_address: updates.ipAddress,
@@ -116,9 +132,8 @@ export function VpsProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteVpsServer = async (id: string) => {
-    if (!isAdmin) return;
-    // Optimistic local delete
     setVpsServers((prev) => prev.filter((s) => s.id !== id));
+    if (isDemo || !isAdmin) return;
     const { error } = await supabase.from("vps_servers").delete().eq("id", id);
     if (error) {
       console.error("[VPS] Failed to delete server:", error);
