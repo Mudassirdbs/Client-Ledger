@@ -30,23 +30,13 @@ function dbToTool(row: Record<string, unknown>): Tool {
   };
 }
 
-import { DEMO_TOOLS } from "@/lib/demo-data";
-
 export function ToolsProvider({ children }: { children: ReactNode }) {
-  const { user, profile, isAdmin } = useAuth();
+  const { profile, isAdmin } = useAuth();
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const refetchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isDemo = import.meta.env.VITE_ENABLE_DEMO_MODE === "true" || user?.id === "demo-admin-id";
-
   const fetchTools = useCallback(async () => {
-    if (isDemo) {
-      setTools(DEMO_TOOLS);
-      setLoading(false);
-      return;
-    }
-
     if (!profile || !isAdmin) { setTools([]); setLoading(false); return; }
 
     setLoading(true);
@@ -61,20 +51,17 @@ export function ToolsProvider({ children }: { children: ReactNode }) {
       setTools(data.map(dbToTool));
     }
     setLoading(false);
-  }, [profile, isAdmin, isDemo]);
+  }, [profile, isAdmin]);
 
   const debouncedFetch = useCallback(() => {
-    if (isDemo) return;
     if (refetchTimer.current) clearTimeout(refetchTimer.current);
     refetchTimer.current = setTimeout(() => {
       fetchTools();
     }, 300);
-  }, [fetchTools, isDemo]);
+  }, [fetchTools]);
 
   useEffect(() => {
     fetchTools();
-
-    if (isDemo) return;
 
     const channel = supabase
       .channel("tools-changes")
@@ -85,14 +72,9 @@ export function ToolsProvider({ children }: { children: ReactNode }) {
       if (refetchTimer.current) clearTimeout(refetchTimer.current);
       supabase.removeChannel(channel);
     };
-  }, [fetchTools, debouncedFetch, isDemo]);
+  }, [fetchTools, debouncedFetch]);
 
   const addTool = async (tool: Omit<Tool, "id">) => {
-    if (isDemo) {
-      const newTool: Tool = { id: `demo-tool-${Date.now()}`, ...tool };
-      setTools((prev) => [newTool, ...prev]);
-      return;
-    }
     if (!isAdmin) return;
     const { error } = await supabase.from("tools").insert({
       app_name: tool.appName,
@@ -102,13 +84,15 @@ export function ToolsProvider({ children }: { children: ReactNode }) {
     if (error) {
       console.error("[Tools] Failed to add tool:", error);
     }
+    // Realtime will push update
   };
 
   const updateTool = async (id: string, updates: Omit<Tool, "id">) => {
+    if (!isAdmin) return;
+    // Optimistic local update
     setTools((prev) =>
       prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
     );
-    if (isDemo || !isAdmin) return;
     const { error } = await supabase.from("tools").update({
       app_name: updates.appName,
       description: updates.description || "",
@@ -121,8 +105,9 @@ export function ToolsProvider({ children }: { children: ReactNode }) {
   };
 
   const deleteTool = async (id: string) => {
+    if (!isAdmin) return;
+    // Optimistic local delete
     setTools((prev) => prev.filter((t) => t.id !== id));
-    if (isDemo || !isAdmin) return;
     const { error } = await supabase.from("tools").delete().eq("id", id);
     if (error) {
       console.error("[Tools] Failed to delete tool:", error);

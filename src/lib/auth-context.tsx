@@ -21,36 +21,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-const isDemoBypass = import.meta.env.VITE_ENABLE_DEMO_MODE === "true";
-
-const DEMO_ADMIN_PROFILE: Profile = {
-  id: "demo-admin-id",
-  email: "admin@demo.local",
-  full_name: "Demo Admin",
-  role: "admin",
-  status: "approved",
-  assigned_client_name: null,
-  avatar_url: null,
-  created_at: new Date().toISOString(),
-};
-
-const DEMO_ADMIN_USER: User = {
-  id: "demo-admin-id",
-  app_metadata: {},
-  user_metadata: {},
-  aud: "authenticated",
-  created_at: new Date().toISOString(),
-  email: "admin@demo.local",
-};
-
-const DEMO_ADMIN_SESSION: Session = {
-  access_token: "demo-token",
-  token_type: "bearer",
-  user: DEMO_ADMIN_USER,
-  expires_in: 3600,
-  refresh_token: "demo-refresh-token",
-};
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -71,19 +41,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
       if (session?.user) {
-        setSession(session);
-        setUser(session.user);
         fetchProfile(session.user.id).finally(() => setLoading(false));
-      } else if (isDemoBypass) {
-        setSession(DEMO_ADMIN_SESSION);
-        setUser(DEMO_ADMIN_USER);
-        setProfile(DEMO_ADMIN_PROFILE);
-        setLoading(false);
       } else {
-        setSession(null);
-        setUser(null);
-        setProfile(null);
         setLoading(false);
       }
     });
@@ -91,17 +53,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
         if (session?.user) {
-          setSession(session);
-          setUser(session.user);
           await fetchProfile(session.user.id);
-        } else if (isDemoBypass) {
-          setSession(DEMO_ADMIN_SESSION);
-          setUser(DEMO_ADMIN_USER);
-          setProfile(DEMO_ADMIN_PROFILE);
         } else {
-          setSession(null);
-          setUser(null);
           setProfile(null);
         }
         setLoading(false);
