@@ -10,7 +10,7 @@
 
 If you discover a security vulnerability within Client Ledger Dashboard, please **DO NOT** open a public issue.
 
-Instead, please send an email to security@yourdomain.com or contact the repository owner directly.
+Instead, please report it via [GitHub Security Advisories](https://github.com/Mudassirdbs/Client-Ledger/security/advisories) or contact the repository owner directly.
 
 Please include:
 - Description of the vulnerability.

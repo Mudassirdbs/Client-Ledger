@@ -1,0 +1,12 @@
+services:
+  client-ledger:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: client-ledger
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    # Environment variables can be passed from .env or defined here
+    # env_file:
+    #   - .env.local
