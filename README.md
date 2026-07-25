@@ -1,6 +1,6 @@
 # Client Ledger Dashboard (Community Edition)
 
-![Dashboard Preview](public/opengraph.jpg)
+![Dashboard Preview](public/Client_Legder_Screenshot.png)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-blue.svg)](https://react.dev/)
