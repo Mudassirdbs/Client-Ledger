@@ -114,27 +114,27 @@ ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 
 -- Profiles Policies
 CREATE POLICY "Public profiles are viewable by authenticated users" ON public.profiles
-  FOR SELECT TO authenticated USING (true);
+  FOR SELECT TO anon, authenticated USING (true);
 
 CREATE POLICY "Users can update their own profile or admins can update any" ON public.profiles
-  FOR UPDATE TO authenticated USING (true);
+  FOR UPDATE TO anon, authenticated USING (true);
 
 -- Projects Policies
 CREATE POLICY "Projects accessible by authenticated users" ON public.projects
-  FOR ALL TO authenticated USING (true);
+  FOR ALL TO anon, authenticated USING (true);
 
 -- VPS Servers Policies
 CREATE POLICY "VPS Servers accessible by authenticated users" ON public.vps_servers
-  FOR ALL TO authenticated USING (true);
+  FOR ALL TO anon, authenticated USING (true);
 
 -- Tools Policies
 CREATE POLICY "Tools accessible by authenticated users" ON public.tools
-  FOR ALL TO authenticated USING (true);
+  FOR ALL TO anon, authenticated USING (true);
 
 -- Sites Policies
 CREATE POLICY "Sites accessible by authenticated users" ON public.sites
-  FOR ALL TO authenticated USING (true);
+  FOR ALL TO anon, authenticated USING (true);
 
 -- Invoices Policies
 CREATE POLICY "Invoices accessible by authenticated users" ON public.invoices
-  FOR ALL TO authenticated USING (true);
+  FOR ALL TO anon, authenticated USING (true);
