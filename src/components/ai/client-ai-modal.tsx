@@ -93,7 +93,7 @@ export function ClientAiModal({ open, onOpenChange, clientName, projects }: Clie
                 <div>
                   <DialogTitle className="text-xl font-bold">{clientName}</DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground">
-                    Groq AI Financial Health & Payment History Summary
+                    AI Financial Health & Payment History Summary
                   </DialogDescription>
                 </div>
               </div>

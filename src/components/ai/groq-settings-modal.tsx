@@ -16,7 +16,7 @@ interface GroqSettingsModalProps {
 
 export function GroqSettingsModal({ open, onOpenChange, onSaved }: GroqSettingsModalProps) {
   const [apiKey, setApiKey] = useState("");
-  const [model, setModel] = useState<GroqModelId>("llama-3.3-70b-versatile");
+  const [model, setModel] = useState<GroqModelId>("gemini-1.5-flash");
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success?: boolean; message?: string } | null>(null);
 
@@ -48,7 +48,7 @@ export function GroqSettingsModal({ open, onOpenChange, onSaved }: GroqSettingsM
   const handleSave = () => {
     saveGroqApiKey(apiKey);
     saveGroqModel(model);
-    toast.success("Groq AI Settings saved!");
+    toast.success("AI Settings saved!");
     if (onSaved) onSaved();
     onOpenChange(false);
   };
@@ -61,10 +61,10 @@ export function GroqSettingsModal({ open, onOpenChange, onSaved }: GroqSettingsM
             <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
-            <DialogTitle className="text-xl font-bold">Groq AI Settings</DialogTitle>
+            <DialogTitle className="text-xl font-bold">AI Engine Settings</DialogTitle>
           </div>
           <DialogDescription className="text-xs text-muted-foreground">
-            Connect Groq's free tier API to power invoice auto-categorization, client payment insights, and your ledger copilot.
+            Connect Google Gemini (or Groq / xAI) to power client payment insights, invoice auto-fill, and your ledger copilot.
           </DialogDescription>
         </DialogHeader>
 
@@ -73,21 +73,21 @@ export function GroqSettingsModal({ open, onOpenChange, onSaved }: GroqSettingsM
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="groq-key-input" className="text-sm font-semibold flex items-center gap-1.5">
-                <Key className="h-4 w-4 text-muted-foreground" /> Groq API Key
+                <Key className="h-4 w-4 text-muted-foreground" /> AI API Key
               </Label>
               <a
-                href="https://console.groq.com/keys"
+                href="https://aistudio.google.com/app/apikey"
                 target="_blank"
                 rel="noreferrer"
                 className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
               >
-                Get free key <ExternalLink className="h-3 w-3" />
+                Get free Gemini key <ExternalLink className="h-3 w-3" />
               </a>
             </div>
             <Input
               id="groq-key-input"
               type="password"
-              placeholder="gsk_..."
+              placeholder="Paste Gemini, Groq (gsk_...), or xAI (xai-...) key"
               value={apiKey}
               onChange={(e) => {
                 setApiKey(e.target.value);
@@ -96,13 +96,13 @@ export function GroqSettingsModal({ open, onOpenChange, onSaved }: GroqSettingsM
               className="font-mono text-sm"
             />
             <p className="text-[11px] text-muted-foreground">
-              Keys start with <code className="text-primary font-bold">gsk_</code>. Saved locally in your browser.
+              Supports Google Gemini, Groq, or xAI keys. Saved locally in your browser.
             </p>
           </div>
 
           {/* Model Selector */}
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">Groq Model</Label>
+            <Label className="text-sm font-semibold">AI Model</Label>
             <Select value={model} onValueChange={(val) => setModel(val as GroqModelId)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select model..." />
