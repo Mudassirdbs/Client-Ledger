@@ -52,41 +52,59 @@ async function callGeminiApi(
     throw new Error("GEMINI_KEY_MISSING: Gemini API key is not configured. Please check VITE_GEMINI_API_KEY in .env.local.");
   }
 
-  const model = options?.model || getGeminiModel() || "gemini-1.5-flash";
-  const endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+  // Model fallback chain to prevent 429 rate limit errors on Gemini free tier
+  const primaryModel = options?.model || getGeminiModel() || "gemini-1.5-flash";
+  const modelChain = Array.from(new Set([primaryModel, "gemini-1.5-flash", "gemini-1.5-flash-8b", "gemini-2.0-flash"]));
 
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: options?.temperature ?? 0.3,
-      ...(options?.response_format ? { response_format: options.response_format } : {}),
-    }),
-  });
+  let lastErrorMsg = "";
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    const message = errorData?.error?.message || response.statusText || `HTTP ${response.status}`;
-    if (response.status === 401) {
-      throw new Error(`INVALID_API_KEY: Invalid Gemini API Key provided. (${message})`);
+  for (const model of modelChain) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages,
+            temperature: options?.temperature ?? 0.3,
+            ...(options?.response_format ? { response_format: options.response_format } : {}),
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const content = data.choices?.[0]?.message?.content;
+          if (content) return content;
+        }
+
+        const errorData = await response.json().catch(() => ({}));
+        const message = errorData?.error?.message || response.statusText || `HTTP ${response.status}`;
+        lastErrorMsg = message;
+
+        if (response.status === 401) {
+          throw new Error(`INVALID_API_KEY: Invalid Gemini API Key provided. (${message})`);
+        }
+
+        // If rate limit (429), wait 2 seconds before retrying or trying next model
+        if (response.status === 429) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        } else {
+          break; // Don't retry non-429 errors for this model
+        }
+      } catch (err: any) {
+        lastErrorMsg = err.message || "Network error";
+        if (err.message?.includes("INVALID_API_KEY")) throw err;
+      }
     }
-    if (response.status === 429) {
-      throw new Error(`RATE_LIMIT: Gemini API rate limit reached. Please wait a moment and try again.`);
-    }
-    throw new Error(`Gemini API Error: ${message}`);
   }
 
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) {
-    throw new Error("No response text received from Gemini API.");
-  }
-  return content;
+  throw new Error(`RATE_LIMIT: Gemini API free tier limit reached (429 Too Many Requests). Please wait 30 seconds and try again. Details: ${lastErrorMsg}`);
 }
 
 export async function testGeminiKey(apiKey?: string, modelId?: string): Promise<{ success: boolean; message: string }> {
