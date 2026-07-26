@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useProjects } from "@/lib/projects-context";
 import { useInvoices } from "@/lib/invoices-context";
-import { askLedgerCopilot, getGroqApiKey } from "@/lib/groq-service";
-import { GroqSettingsModal } from "./groq-settings-modal";
-import { Sparkles, Send, Bot, User, Key, Loader2, RefreshCw } from "lucide-react";
+import { askLedgerCopilot, getGeminiApiKey } from "@/lib/gemini-service";
+import { AiSettingsModal } from "./ai-settings-modal";
+import { Sparkles, Send, Bot, User, Key, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,7 @@ export function LedgerCopilotDrawer({ open, onOpenChange }: LedgerCopilotDrawerP
     {
       id: "welcome",
       sender: "ai",
-      text: "👋 Hi! I'm your Groq AI Ledger Copilot. Ask me anything about your revenue, client balances, payment bottlenecks, or collection strategies!",
+      text: "👋 Hi! I'm your Gemini AI Ledger Copilot. Ask me anything about your revenue, client balances, payment bottlenecks, or collection strategies!",
     },
   ]);
   const [inputQuery, setInputQuery] = useState("");
@@ -46,7 +46,7 @@ export function LedgerCopilotDrawer({ open, onOpenChange }: LedgerCopilotDrawerP
     const q = queryText || inputQuery;
     if (!q.trim()) return;
 
-    const apiKey = getGroqApiKey();
+    const apiKey = getGeminiApiKey();
     if (!apiKey) {
       setSettingsOpen(true);
       return;
@@ -62,10 +62,10 @@ export function LedgerCopilotDrawer({ open, onOpenChange }: LedgerCopilotDrawerP
       const aiMsg: ChatMessage = { id: crypto.randomUUID(), sender: "ai", text: reply };
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err: any) {
-      toast.error(err.message || "Failed to communicate with Groq AI Copilot");
+      toast.error(err.message || "Failed to communicate with Gemini AI Copilot");
       setMessages((prev) => [
         ...prev,
-        { id: crypto.randomUUID(), sender: "ai", text: "❌ Sorry, I encountered an error. Please check your Groq API Key." },
+        { id: crypto.randomUUID(), sender: "ai", text: "❌ Sorry, I encountered an error. Please check your Gemini API Key." },
       ]);
     } finally {
       setLoading(false);
@@ -74,7 +74,7 @@ export function LedgerCopilotDrawer({ open, onOpenChange }: LedgerCopilotDrawerP
 
   return (
     <>
-      <GroqSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <AiSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} />
 
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-xl bg-card border-card-border rounded-3xl p-6 flex flex-col h-[85vh]">
@@ -86,7 +86,7 @@ export function LedgerCopilotDrawer({ open, onOpenChange }: LedgerCopilotDrawerP
                 </div>
                 <div>
                   <DialogTitle className="text-lg font-bold flex items-center gap-2">
-                    Groq AI Ledger Copilot
+                    Gemini AI Ledger Copilot
                   </DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground">
                     Ask natural language questions about your business ledger
@@ -150,7 +150,7 @@ export function LedgerCopilotDrawer({ open, onOpenChange }: LedgerCopilotDrawerP
                   <Bot className="h-3.5 w-3.5" />
                 </div>
                 <div className="p-3.5 rounded-2xl bg-muted/40 border border-border text-xs flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> Groq AI thinking...
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> Gemini AI thinking...
                 </div>
               </div>
             )}

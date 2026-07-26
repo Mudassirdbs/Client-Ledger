@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   analyzeClientFinancialHealth,
   ClientFinancialAnalysis,
-  getGroqApiKey,
-} from "@/lib/groq-service";
-import { GroqSettingsModal } from "./groq-settings-modal";
+  getGeminiApiKey,
+} from "@/lib/gemini-service";
+import { AiSettingsModal } from "./ai-settings-modal";
 import { Sparkles, Check, Copy, RefreshCw, AlertTriangle, ShieldCheck, Mail, ArrowRight, Loader2, Key } from "lucide-react";
 import { fmt, cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -32,7 +31,7 @@ export function ClientAiModal({ open, onOpenChange, clientName, projects }: Clie
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const handleAnalyze = async () => {
-    const key = getGroqApiKey();
+    const key = getGeminiApiKey();
     if (!key) {
       setSettingsOpen(true);
       return;
@@ -42,13 +41,12 @@ export function ClientAiModal({ open, onOpenChange, clientName, projects }: Clie
       const result = await analyzeClientFinancialHealth(clientName, projects);
       setAnalysis(result);
     } catch (err: any) {
-      toast.error(err.message || "Failed to analyze client with Groq AI");
+      toast.error(err.message || "Failed to analyze client with Gemini AI");
     } finally {
       setLoading(false);
     }
   };
 
-  // Run analysis when opened if not already generated for this client
   const onDialogOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen);
     if (newOpen && (!analysis || analysis.clientName !== clientName)) {
@@ -80,7 +78,7 @@ export function ClientAiModal({ open, onOpenChange, clientName, projects }: Clie
 
   return (
     <>
-      <GroqSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={() => handleAnalyze()} />
+      <AiSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={() => handleAnalyze()} />
 
       <Dialog open={open} onOpenChange={onDialogOpenChange}>
         <DialogContent className="sm:max-w-2xl bg-card border-card-border rounded-3xl p-6 md:p-8 max-h-[85vh] overflow-y-auto">
@@ -93,7 +91,7 @@ export function ClientAiModal({ open, onOpenChange, clientName, projects }: Clie
                 <div>
                   <DialogTitle className="text-xl font-bold">{clientName}</DialogTitle>
                   <DialogDescription className="text-xs text-muted-foreground">
-                    AI Financial Health & Payment History Summary
+                    Gemini AI Financial Health & Payment History Summary
                   </DialogDescription>
                 </div>
               </div>
@@ -117,7 +115,7 @@ export function ClientAiModal({ open, onOpenChange, clientName, projects }: Clie
             <div className="py-16 text-center space-y-4">
               <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto" />
               <div className="space-y-1">
-                <p className="text-sm font-semibold text-foreground">Analyzing payment patterns with Groq AI...</p>
+                <p className="text-sm font-semibold text-foreground">Analyzing payment patterns with Gemini AI...</p>
                 <p className="text-xs text-muted-foreground">Evaluating revenue, collection velocity & risk profiles</p>
               </div>
             </div>
@@ -127,7 +125,7 @@ export function ClientAiModal({ open, onOpenChange, clientName, projects }: Clie
                 <Sparkles className="h-6 w-6" />
               </div>
               <div className="space-y-1">
-                <p className="text-base font-semibold text-foreground">Generate AI Financial Analysis</p>
+                <p className="text-base font-semibold text-foreground">Generate Gemini AI Analysis</p>
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                   Click below to analyze {clientName}'s payment metrics, collection risk, and generate tailored reminder emails.
                 </p>
@@ -239,7 +237,7 @@ export function ClientAiModal({ open, onOpenChange, clientName, projects }: Clie
 
           <div className="flex items-center justify-between pt-4 border-t border-border mt-6">
             <button onClick={() => setSettingsOpen(true)} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-              <Key className="h-3 w-3" /> Configure Groq API Key
+              <Key className="h-3 w-3" /> Configure Gemini API Key
             </button>
             <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               Close

@@ -3,8 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { parseInvoiceFromText, ParsedInvoiceData, getGroqApiKey } from "@/lib/groq-service";
-import { GroqSettingsModal } from "./groq-settings-modal";
+import { parseInvoiceFromText, ParsedInvoiceData, getGeminiApiKey } from "@/lib/gemini-service";
+import { AiSettingsModal } from "./ai-settings-modal";
 import { Sparkles, ArrowRight, CheckCircle2, Loader2, Key, Tag } from "lucide-react";
 import { fmt } from "@/lib/utils";
 import { toast } from "sonner";
@@ -26,7 +26,7 @@ export function AiInvoiceParserModal({ open, onOpenChange, onApplyInvoice }: AiI
       toast.error("Please enter contract notes or an email snippet first.");
       return;
     }
-    const key = getGroqApiKey();
+    const key = getGeminiApiKey();
     if (!key) {
       setSettingsOpen(true);
       return;
@@ -35,7 +35,7 @@ export function AiInvoiceParserModal({ open, onOpenChange, onApplyInvoice }: AiI
     try {
       const data = await parseInvoiceFromText(rawText);
       setParsedData(data);
-      toast.success("Invoice details parsed successfully!");
+      toast.success("Invoice details parsed successfully with Gemini AI!");
     } catch (err: any) {
       toast.error(err.message || "Failed to parse text into invoice.");
     } finally {
@@ -57,7 +57,7 @@ export function AiInvoiceParserModal({ open, onOpenChange, onApplyInvoice }: AiI
 
   return (
     <>
-      <GroqSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={() => handleParse()} />
+      <AiSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} onSaved={() => handleParse()} />
 
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-xl bg-card border-card-border rounded-3xl p-6 md:p-8 max-h-[85vh] overflow-y-auto">
@@ -67,7 +67,7 @@ export function AiInvoiceParserModal({ open, onOpenChange, onApplyInvoice }: AiI
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-bold">AI Invoice Auto-Fill</DialogTitle>
+                <DialogTitle className="text-xl font-bold">Gemini AI Invoice Auto-Fill</DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
                   Paste contract scope, email notes, or Slack messages to auto-generate structured invoice line items.
                 </DialogDescription>
@@ -109,7 +109,7 @@ export function AiInvoiceParserModal({ open, onOpenChange, onApplyInvoice }: AiI
               className="w-full font-semibold gap-2 py-5 rounded-xl shadow-md"
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              {loading ? "Extracting & Auto-Categorizing..." : "Parse & Auto-Generate Invoice"}
+              {loading ? "Extracting with Gemini AI..." : "Parse & Auto-Generate Invoice"}
             </Button>
 
             {/* Parsed Result Preview */}
@@ -170,7 +170,7 @@ export function AiInvoiceParserModal({ open, onOpenChange, onApplyInvoice }: AiI
 
           <div className="flex items-center justify-between pt-3 border-t border-border mt-4">
             <button onClick={() => setSettingsOpen(true)} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-              <Key className="h-3 w-3" /> Groq API Settings
+              <Key className="h-3 w-3" /> Gemini AI Settings
             </button>
             <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
               Cancel

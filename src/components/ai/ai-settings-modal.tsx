@@ -4,38 +4,38 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { GROQ_MODELS, getGroqApiKey, saveGroqApiKey, getGroqModel, saveGroqModel, testGroqKey, GroqModelId } from "@/lib/groq-service";
+import { GEMINI_MODELS, getGeminiApiKey, saveGeminiApiKey, getGeminiModel, saveGeminiModel, testGeminiKey, GeminiModelId } from "@/lib/gemini-service";
 import { Key, Sparkles, CheckCircle2, AlertCircle, ExternalLink, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-interface GroqSettingsModalProps {
+interface AiSettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSaved?: () => void;
 }
 
-export function GroqSettingsModal({ open, onOpenChange, onSaved }: GroqSettingsModalProps) {
+export function AiSettingsModal({ open, onOpenChange, onSaved }: AiSettingsModalProps) {
   const [apiKey, setApiKey] = useState("");
-  const [model, setModel] = useState<GroqModelId>("gemini-1.5-flash");
+  const [model, setModel] = useState<GeminiModelId>("gemini-1.5-flash");
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success?: boolean; message?: string } | null>(null);
 
   useEffect(() => {
     if (open) {
-      setApiKey(getGroqApiKey());
-      setModel(getGroqModel());
+      setApiKey(getGeminiApiKey());
+      setModel(getGeminiModel());
       setTestResult(null);
     }
   }, [open]);
 
   const handleTest = async () => {
     if (!apiKey.trim()) {
-      toast.error("Please enter an API Key to test");
+      toast.error("Please enter a Gemini API Key to test");
       return;
     }
     setTesting(true);
     setTestResult(null);
-    const res = await testGroqKey(apiKey, model);
+    const res = await testGeminiKey(apiKey, model);
     setTesting(false);
     setTestResult(res);
     if (res.success) {
@@ -46,9 +46,9 @@ export function GroqSettingsModal({ open, onOpenChange, onSaved }: GroqSettingsM
   };
 
   const handleSave = () => {
-    saveGroqApiKey(apiKey);
-    saveGroqModel(model);
-    toast.success("AI Settings saved!");
+    saveGeminiApiKey(apiKey);
+    saveGeminiModel(model);
+    toast.success("Gemini AI Settings saved!");
     if (onSaved) onSaved();
     onOpenChange(false);
   };
@@ -61,10 +61,10 @@ export function GroqSettingsModal({ open, onOpenChange, onSaved }: GroqSettingsM
             <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
-            <DialogTitle className="text-xl font-bold">AI Engine Settings</DialogTitle>
+            <DialogTitle className="text-xl font-bold">Gemini AI Settings</DialogTitle>
           </div>
           <DialogDescription className="text-xs text-muted-foreground">
-            Connect Google Gemini (or Groq / xAI) to power client payment insights, invoice auto-fill, and your ledger copilot.
+            Connect Google Gemini AI to power client payment insights, invoice auto-fill, and your ledger copilot.
           </DialogDescription>
         </DialogHeader>
 
@@ -72,8 +72,8 @@ export function GroqSettingsModal({ open, onOpenChange, onSaved }: GroqSettingsM
           {/* API Key Input */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="groq-key-input" className="text-sm font-semibold flex items-center gap-1.5">
-                <Key className="h-4 w-4 text-muted-foreground" /> AI API Key
+              <Label htmlFor="gemini-key-input" className="text-sm font-semibold flex items-center gap-1.5">
+                <Key className="h-4 w-4 text-muted-foreground" /> Gemini API Key
               </Label>
               <a
                 href="https://aistudio.google.com/app/apikey"
@@ -81,13 +81,13 @@ export function GroqSettingsModal({ open, onOpenChange, onSaved }: GroqSettingsM
                 rel="noreferrer"
                 className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
               >
-                Get free Gemini key <ExternalLink className="h-3 w-3" />
+                Get free key <ExternalLink className="h-3 w-3" />
               </a>
             </div>
             <Input
-              id="groq-key-input"
+              id="gemini-key-input"
               type="password"
-              placeholder="Paste Gemini, Groq (gsk_...), or xAI (xai-...) key"
+              placeholder="Paste Google Gemini API key"
               value={apiKey}
               onChange={(e) => {
                 setApiKey(e.target.value);
@@ -96,19 +96,19 @@ export function GroqSettingsModal({ open, onOpenChange, onSaved }: GroqSettingsM
               className="font-mono text-sm"
             />
             <p className="text-[11px] text-muted-foreground">
-              Supports Google Gemini, Groq, or xAI keys. Saved locally in your browser.
+              Configured via <code className="text-primary font-bold">VITE_GEMINI_API_KEY</code> in <code className="text-primary font-bold">.env.local</code> or browser storage.
             </p>
           </div>
 
           {/* Model Selector */}
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">AI Model</Label>
-            <Select value={model} onValueChange={(val) => setModel(val as GroqModelId)}>
+            <Label className="text-sm font-semibold">Gemini Model</Label>
+            <Select value={model} onValueChange={(val) => setModel(val as GeminiModelId)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select model..." />
               </SelectTrigger>
               <SelectContent>
-                {GROQ_MODELS.map((m) => (
+                {GEMINI_MODELS.map((m) => (
                   <SelectItem key={m.id} value={m.id}>
                     <div className="flex flex-col text-left py-0.5">
                       <span className="font-semibold text-xs">{m.name}</span>

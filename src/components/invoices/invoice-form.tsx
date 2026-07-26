@@ -20,7 +20,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { AiInvoiceParserModal } from "@/components/ai/ai-invoice-parser-modal";
-import { ParsedInvoiceData } from "@/lib/groq-service";
+import { ParsedInvoiceData } from "@/lib/gemini-service";
 
 interface InvoiceFormProps {
   invoiceData: any;

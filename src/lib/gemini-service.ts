@@ -1,32 +1,26 @@
-// AI Service for Client Ledger (Supports Google Gemini, Groq, and xAI Grok)
+// Google Gemini AI Service for Client Ledger
+// Handles financial risk analysis, payment summaries, invoice parsing, and ledger copilot
 
-export const GROQ_MODELS = [
-  { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash (Google Default)", description: "High speed, high accuracy reasoning model" },
-  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash (Google Next-Gen)", description: "Ultra-fast next-gen Gemini model" },
-  { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro (Google Deep Reasoning)", description: "Advanced reasoning for complex financial documents" },
-  { id: "llama-3.3-70b-versatile", name: "Llama 3.3 70B (Groq Recommended)", description: "High accuracy open-weights model on Groq" },
-  { id: "llama-3.1-8b-instant", name: "Llama 3.1 8B (Groq Ultra Fast)", description: "Lightning fast speed for quick text parsing" },
-  { id: "grok-2-latest", name: "Grok 2 Latest (xAI)", description: "xAI Grok-2 high capability intelligence" },
+export const GEMINI_MODELS = [
+  { id: "gemini-1.5-flash", name: "Gemini 1.5 Flash (Recommended)", description: "High speed, accurate reasoning for ledger insights" },
+  { id: "gemini-2.0-flash", name: "Gemini 2.0 Flash (Next-Gen)", description: "Next-gen ultra fast performance" },
+  { id: "gemini-1.5-pro", name: "Gemini 1.5 Pro (Deep Reasoning)", description: "Advanced reasoning for complex financial documents" },
 ] as const;
 
-export type GroqModelId = typeof GROQ_MODELS[number]["id"];
+export type GeminiModelId = typeof GEMINI_MODELS[number]["id"];
 
-const STORAGE_KEY_API = "groq_api_key";
-const STORAGE_KEY_MODEL = "groq_model_id";
+const STORAGE_KEY_API = "gemini_api_key";
+const STORAGE_KEY_MODEL = "gemini_model_id";
 
-export function getGroqApiKey(): string {
+export function getGeminiApiKey(): string {
   const stored = localStorage.getItem(STORAGE_KEY_API);
   if (stored && stored.trim()) return stored.trim();
-  const envGemini = import.meta.env.VITE_GEMINI_API_KEY;
-  if (envGemini && typeof envGemini === "string" && envGemini.trim()) return envGemini.trim();
-  const envGroq = import.meta.env.VITE_GROQ_API_KEY;
-  if (envGroq && typeof envGroq === "string" && envGroq.trim()) return envGroq.trim();
-  const envXai = import.meta.env.VITE_XAI_API_KEY;
-  if (envXai && typeof envXai === "string" && envXai.trim()) return envXai.trim();
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+  if (envKey && typeof envKey === "string" && envKey.trim()) return envKey.trim();
   return "";
 }
 
-export function saveGroqApiKey(key: string): void {
+export function saveGeminiApiKey(key: string): void {
   if (!key || !key.trim()) {
     localStorage.removeItem(STORAGE_KEY_API);
   } else {
@@ -34,64 +28,32 @@ export function saveGroqApiKey(key: string): void {
   }
 }
 
-export function getGroqModel(): GroqModelId {
-  const apiKey = getGroqApiKey();
-  const stored = localStorage.getItem(STORAGE_KEY_MODEL) as GroqModelId;
-  if (stored && GROQ_MODELS.some(m => m.id === stored)) return stored;
-  if (apiKey.startsWith("AQ.") || apiKey.startsWith("AIza")) return "gemini-1.5-flash";
-  if (apiKey.startsWith("xai-")) return "grok-2-latest";
-  if (apiKey.startsWith("gsk_")) return "llama-3.3-70b-versatile";
+export function getGeminiModel(): GeminiModelId {
+  const stored = localStorage.getItem(STORAGE_KEY_MODEL) as GeminiModelId;
+  if (stored && GEMINI_MODELS.some((m) => m.id === stored)) return stored;
   return "gemini-1.5-flash";
 }
 
-export function saveGroqModel(model: GroqModelId): void {
+export function saveGeminiModel(model: GeminiModelId): void {
   localStorage.setItem(STORAGE_KEY_MODEL, model);
 }
 
-interface GroqChatMessage {
+interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
 }
 
-function getApiConfig(apiKey: string, selectedModel?: string): { endpoint: string; defaultModel: string; providerName: string } {
-  if (apiKey.startsWith("xai-")) {
-    return {
-      endpoint: "https://api.x.ai/v1/chat/completions",
-      defaultModel: "grok-2-latest",
-      providerName: "xAI (Grok)",
-    };
-  }
-  if (apiKey.startsWith("gsk_")) {
-    return {
-      endpoint: "https://api.groq.com/openai/v1/chat/completions",
-      defaultModel: "llama-3.3-70b-versatile",
-      providerName: "Groq",
-    };
-  }
-  // Default to Google Gemini (OpenAI compatibility endpoint)
-  return {
-    endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-    defaultModel: "gemini-1.5-flash",
-    providerName: "Google Gemini",
-  };
-}
-
-async function callGroqApi(
-  messages: GroqChatMessage[],
+async function callGeminiApi(
+  messages: ChatMessage[],
   options?: { response_format?: { type: "json_object" }; temperature?: number; model?: string }
 ): Promise<string> {
-  const apiKey = getGroqApiKey();
+  const apiKey = getGeminiApiKey();
   if (!apiKey) {
-    throw new Error("API_KEY_MISSING: AI API key is not configured. Please set your Gemini, Groq, or xAI key in Settings.");
+    throw new Error("GEMINI_KEY_MISSING: Gemini API key is not configured. Please check VITE_GEMINI_API_KEY in .env.local.");
   }
 
-  const { endpoint, defaultModel } = getApiConfig(apiKey, options?.model);
-  let model = options?.model || getGroqModel() || defaultModel;
-  
-  // Guard against incompatible model/key combinations
-  if (apiKey.startsWith("AQ.") || apiKey.startsWith("AIza")) {
-    if (!model.startsWith("gemini")) model = "gemini-1.5-flash";
-  }
+  const model = options?.model || getGeminiModel() || "gemini-1.5-flash";
+  const endpoint = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 
   const response = await fetch(endpoint, {
     method: "POST",
@@ -111,35 +73,30 @@ async function callGroqApi(
     const errorData = await response.json().catch(() => ({}));
     const message = errorData?.error?.message || response.statusText || `HTTP ${response.status}`;
     if (response.status === 401) {
-      throw new Error(`INVALID_API_KEY: Invalid API Key provided. (${message})`);
+      throw new Error(`INVALID_API_KEY: Invalid Gemini API Key provided. (${message})`);
     }
     if (response.status === 429) {
-      throw new Error(`RATE_LIMIT: Rate limit reached. Please wait a moment and try again.`);
+      throw new Error(`RATE_LIMIT: Gemini API rate limit reached. Please wait a moment and try again.`);
     }
-    throw new Error(`AI API Error: ${message}`);
+    throw new Error(`Gemini API Error: ${message}`);
   }
 
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content;
   if (!content) {
-    throw new Error("No response text received from AI provider.");
+    throw new Error("No response text received from Gemini API.");
   }
   return content;
 }
 
-export async function testGroqKey(apiKey?: string, modelId?: string): Promise<{ success: boolean; message: string }> {
-  const key = apiKey ?? getGroqApiKey();
+export async function testGeminiKey(apiKey?: string, modelId?: string): Promise<{ success: boolean; message: string }> {
+  const key = apiKey ?? getGeminiApiKey();
   if (!key) {
-    return { success: false, message: "No API Key provided." };
+    return { success: false, message: "No Gemini API Key provided." };
   }
-  const { endpoint, defaultModel, providerName } = getApiConfig(key, modelId);
-  let model = modelId || defaultModel;
-  if ((key.startsWith("AQ.") || key.startsWith("AIza")) && !model.startsWith("gemini")) {
-    model = "gemini-1.5-flash";
-  }
-
+  const model = modelId || getGeminiModel();
   try {
-    const res = await fetch(endpoint, {
+    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -156,9 +113,9 @@ export async function testGroqKey(apiKey?: string, modelId?: string): Promise<{ 
       const err = await res.json().catch(() => ({}));
       return { success: false, message: err?.error?.message || `HTTP ${res.status}` };
     }
-    return { success: true, message: `${providerName} API key verified successfully!` };
+    return { success: true, message: "Google Gemini API key verified successfully!" };
   } catch (err: any) {
-    return { success: false, message: err.message || "Failed to connect to AI provider API." };
+    return { success: false, message: err.message || "Failed to connect to Gemini API." };
   }
 }
 
@@ -195,7 +152,7 @@ export async function analyzeClientFinancialHealth(
   const totalOutstanding = totalValue - totalCollected;
   const collectionRate = totalValue > 0 ? Math.round((totalCollected / totalValue) * 100) : 100;
 
-  const systemPrompt = `You are an expert freelance financial advisor and risk analyst. Analyze client payment history and project metrics for freelance/agency ledgers. Return JSON adhering to the specified schema strictly.`;
+  const systemPrompt = `You are an expert freelance financial advisor and risk analyst powered by Gemini AI. Analyze client payment history and project metrics for freelance/agency ledgers. Return JSON adhering to the specified schema strictly.`;
 
   const userPrompt = `Analyze financial risk and generate payment summary & customizable reminder email drafts for client: "${clientName}".
 
@@ -223,7 +180,7 @@ Output format (MUST be valid JSON):
   }
 }`;
 
-  const jsonText = await callGroqApi(
+  const jsonText = await callGeminiApi(
     [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
@@ -273,7 +230,7 @@ export interface ParsedInvoiceData {
 }
 
 export async function parseInvoiceFromText(rawText: string): Promise<ParsedInvoiceData> {
-  const systemPrompt = `You are a smart accounting AI that extracts structured invoice & billing information from unformatted client emails, contract notes, or scope descriptions into JSON.`;
+  const systemPrompt = `You are Gemini AI, a smart accounting assistant that extracts structured invoice & billing information from unformatted client emails, contract notes, or scope descriptions into JSON.`;
 
   const userPrompt = `Extract invoice details from the following raw text input:
 
@@ -302,7 +259,7 @@ Output valid JSON matching this exact structure:
   "notes": "Brief summary of what was parsed"
 }`;
 
-  const jsonText = await callGroqApi(
+  const jsonText = await callGeminiApi(
     [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
@@ -320,7 +277,7 @@ export async function askLedgerCopilot(
     invoices: Array<{ invoiceNumber: string; clientName: string; status: string; total: number; amountPaid?: number; invoiceDate: string }>;
   }
 ): Promise<string> {
-  const systemPrompt = `You are Groq AI Ledger Copilot, an intelligent financial & project assistant integrated into Client Ledger app.
+  const systemPrompt = `You are Gemini AI Ledger Copilot, an intelligent financial & project assistant integrated into Client Ledger.
 You analyze financial data, client payment histories, outstanding balances, and project status to provide actionable, concise, and helpful advice. Format your output with clear Markdown. Keep responses direct, professional, and readable.`;
 
   const summaryContext = {
@@ -338,7 +295,7 @@ ${JSON.stringify(summaryContext, null, 2)}
 User Question:
 "${query}"`;
 
-  return await callGroqApi(
+  return await callGeminiApi(
     [
       { role: "system", content: systemPrompt },
       { role: "user", content: userPrompt },
