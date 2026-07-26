@@ -4,9 +4,10 @@ import { useProjects } from "@/lib/projects-context";
 import { AddProjectForm } from "@/components/dashboard/add-project-form";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Plus, TrendingUp, CheckCircle2, Clock, Circle, Users } from "lucide-react";
+import { Plus, TrendingUp, CheckCircle2, Clock, Circle, Users, Sparkles } from "lucide-react";
 import { cn, fmt } from "@/lib/utils";
 import { FadeIn } from "@/components/ui/fade-in";
+import { ClientAiModal } from "@/components/ai/client-ai-modal";
 
 const AVATAR_COLORS = [
   "bg-blue-500", "bg-emerald-500", "bg-violet-500",
@@ -27,6 +28,7 @@ export default function Clients() {
   const { projects, addProject } = useProjects();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
 
   const clients = useMemo(() => {
     const map = new Map<string, typeof projects>();
@@ -168,18 +170,28 @@ export default function Clients() {
                       <div className={cn("h-20 w-20 rounded-[1.25rem] flex items-center justify-center text-3xl font-black text-white shrink-0 shadow-lg", avatarColor(selectedClient.name))}>
                         {initials(selectedClient.name)}
                       </div>
-                      <div className="flex-1 relative z-10">
-                        <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{selectedClient.name}</h2>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-inset ring-border">
-                            {selectedClient.projects.length} Project{selectedClient.projects.length !== 1 ? "s" : ""}
-                          </span>
-                          {selectedClient.rate === 100 && (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-600 ring-1 ring-inset ring-emerald-500/20">
-                              <CheckCircle2 className="h-3 w-3" /> Fully Paid
+                      <div className="flex-1 relative z-10 flex items-center justify-between flex-wrap gap-3">
+                        <div>
+                          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">{selectedClient.name}</h2>
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium text-muted-foreground ring-1 ring-inset ring-border">
+                              {selectedClient.projects.length} Project{selectedClient.projects.length !== 1 ? "s" : ""}
                             </span>
-                          )}
+                            {selectedClient.rate === 100 && (
+                              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-2 py-1 text-xs font-medium text-emerald-600 ring-1 ring-inset ring-emerald-500/20">
+                                <CheckCircle2 className="h-3 w-3" /> Fully Paid
+                              </span>
+                            )}
+                          </div>
                         </div>
+
+                        <Button
+                          onClick={() => setAiModalOpen(true)}
+                          className="gap-2 bg-gradient-to-r from-primary via-indigo-600 to-violet-600 hover:from-primary/90 hover:to-violet-700 text-white font-bold rounded-2xl shadow-md text-xs h-10 px-4 shrink-0"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          <span>AI Insights & Summary</span>
+                        </Button>
                       </div>
                     </div>
                   </FadeIn>
@@ -269,6 +281,15 @@ export default function Clients() {
           </div>
         </div>
       </main>
+
+      {selectedClient && (
+        <ClientAiModal
+          open={aiModalOpen}
+          onOpenChange={setAiModalOpen}
+          clientName={selectedClient.name}
+          projects={selectedClient.projects}
+        />
+      )}
     </AppShell>
   );
 }

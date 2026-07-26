@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2, Link } from "lucide-react";
+import { Plus, Trash2, Link, Sparkles } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog,
@@ -19,6 +19,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { AiInvoiceParserModal } from "@/components/ai/ai-invoice-parser-modal";
+import { ParsedInvoiceData } from "@/lib/groq-service";
 
 interface InvoiceFormProps {
   invoiceData: any;
@@ -31,6 +33,35 @@ interface InvoiceFormProps {
 export function InvoiceForm({ invoiceData, setInvoiceData, onSave, onPrint, loading }: InvoiceFormProps) {
   const { projects } = useProjects();
   const [selectedProjectId, setSelectedProjectId] = useState<string>("none");
+  const [aiParserOpen, setAiParserOpen] = useState(false);
+
+  const handleApplyAiData = (parsed: ParsedInvoiceData) => {
+    setInvoiceData((prev: any) => {
+      const newItems: InvoiceItem[] = parsed.items.map((item) => ({
+        id: crypto.randomUUID(),
+        title: item.title,
+        description: item.description || "",
+        qty: item.qty || 1,
+        rate: item.rate || 0,
+        amount: item.amount || ((item.qty || 1) * (item.rate || 0)),
+      }));
+      const subtotal = parsed.subtotal || newItems.reduce((acc, i) => acc + i.amount, 0);
+      const discount = parsed.discount || 0;
+      const total = parsed.total || (subtotal - discount);
+
+      return {
+        ...prev,
+        clientName: parsed.clientName || prev.clientName,
+        clientAddress: parsed.clientAddress || prev.clientAddress,
+        projectName: parsed.projectName || prev.projectName,
+        items: newItems.length > 0 ? newItems : prev.items,
+        subtotal,
+        discount,
+        total,
+        deliverables: parsed.deliverables?.length ? parsed.deliverables : prev.deliverables,
+      };
+    });
+  };
 
   // Handlers for inputs
   const updateField = (field: string, value: any) => {
@@ -136,6 +167,26 @@ export function InvoiceForm({ invoiceData, setInvoiceData, onSave, onPrint, load
 
   return (
     <div className="space-y-6">
+      {/* Groq AI Smart Auto-Fill Banner */}
+      <div className="p-4 border rounded-2xl bg-gradient-to-r from-primary/10 via-violet-500/10 to-indigo-500/10 border-primary/20 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-foreground font-semibold text-xs">
+            <Sparkles className="h-4 w-4 text-primary shrink-0" />
+            <span>AI Smart Draft & Auto-Fill</span>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setAiParserOpen(true)}
+            className="h-8 gap-1.5 font-bold text-xs bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> Auto-Fill from Text
+          </Button>
+        </div>
+        <p className="text-[11px] text-muted-foreground leading-normal">
+          Paste client emails or project notes to auto-extract line items, prices, deliverables, and category.
+        </p>
+      </div>
+
       <div className="p-5 border rounded-xl bg-card space-y-4">
         <h3 className="font-semibold text-sm flex items-center gap-2">
           <Link className="h-4 w-4" /> Link to Project
@@ -327,6 +378,12 @@ export function InvoiceForm({ invoiceData, setInvoiceData, onSave, onPrint, load
           Print / PDF
         </Button>
       </div>
+
+      <AiInvoiceParserModal
+        open={aiParserOpen}
+        onOpenChange={setAiParserOpen}
+        onApplyInvoice={handleApplyAiData}
+      />
     </div>
   );
 }

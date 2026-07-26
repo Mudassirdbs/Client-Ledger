@@ -18,6 +18,7 @@ import {
   Sun,
   Moon,
   Globe,
+  Sparkles,
 } from "lucide-react";
 import {
   Tooltip,
@@ -28,11 +29,13 @@ import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/App";
 import { ProfileDialog } from "@/components/layout/profile-dialog";
 import { useStaleProjects } from "@/lib/stale-projects-context";
+import { LedgerCopilotDrawer } from "@/components/ai/ledger-copilot-drawer";
 
 export function Sidebar() {
   const [location] = useLocation();
   const { isAdmin, profile, signOut } = useAuth();
   const { isDark, toggleTheme } = useTheme();
+  const [copilotOpen, setCopilotOpen] = useState(false);
 
   const isActive = (href: string) =>
     href === "/" ? location === "/" : location.startsWith(href);
@@ -120,6 +123,18 @@ export function Sidebar() {
             
             {/* Bottom user section */}
             <div className="p-4 border-t border-zinc-800/60 space-y-3">
+              {/* Groq AI Copilot (mobile) */}
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setCopilotOpen(true);
+                }}
+                className="w-full h-12 flex items-center gap-3 px-4 rounded-xl text-primary bg-primary/10 hover:bg-primary/20 font-semibold transition-colors border border-primary/20"
+              >
+                <Sparkles className="h-[18px] w-[18px] shrink-0" />
+                <span>AI Copilot</span>
+              </button>
+
               {/* Theme toggle (mobile) */}
               <button
                 onClick={toggleTheme}
@@ -210,6 +225,20 @@ export function Sidebar() {
 
       {/* Bottom — theme toggle + avatar + logout */}
       <div className="px-3 pb-4 space-y-2 shrink-0">
+        {/* Groq AI Copilot (desktop) */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() => setCopilotOpen(true)}
+              className="w-full h-10 flex items-center justify-center rounded-lg text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+            >
+              <Sparkles className="h-[18px] w-[18px]" />
+              <span className="sr-only">Groq AI Copilot</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="right">Groq AI Copilot</TooltipContent>
+        </Tooltip>
+
         {/* Theme toggle (desktop) */}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -263,6 +292,8 @@ export function Sidebar() {
         </Tooltip>
       </div>
     </aside>
+
+    <LedgerCopilotDrawer open={copilotOpen} onOpenChange={setCopilotOpen} />
     </>
   );
 }
